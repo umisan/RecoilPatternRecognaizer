@@ -1,0 +1,2 @@
+# RecoilPatternRecognaizer
+加工された画像からリコイルパターンを検出する
