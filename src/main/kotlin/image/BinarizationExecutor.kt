@@ -9,7 +9,7 @@ class BinarizationExecutor {
     fun toBinary(input: Mat, targetColor: Color) :Mat {
         val inputIndexer = input.createIndexer<UByteRawIndexer>()
         val dest = Mat(input.rows(), input.cols(), CV_8UC1)
-        val destIndexer = input.createIndexer<UByteRawIndexer>()
+        val destIndexer = dest.createIndexer<UByteRawIndexer>()
 
         for (y in 0 until dest.rows()) {
             for (x in 0 until dest.cols()) {
