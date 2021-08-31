@@ -21,6 +21,7 @@
 
 # ide
 .idea/
+*.iml
 
 # build
 target/
