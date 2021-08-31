@@ -38,6 +38,6 @@ fun main(args: Array<String>) {
             .stream()
             .map { coordinate -> Coordinate(coordinate.x - referenceCoordinate.x, referenceCoordinate.y - coordinate.y) }
             .collect(Collectors.toList())
-        println(diff.joinToString())
+        println(diff.joinToString(separator = ",", prefix = "[", postfix = "]", transform = { it -> "(${it.x}, ${it.y})"}))
     }
 }
