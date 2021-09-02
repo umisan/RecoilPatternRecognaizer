@@ -1,8 +1,13 @@
 import entity.Color
-import entity.Coordinate
+import entity.Rectangle
 import image.BinarizationExecutor
+import image.GunMarksDetector
 import image.ImageReaderWriter
-import image.PointDetector
+import org.bytedeco.opencv.global.opencv_imgproc.LINE_8
+
+import org.bytedeco.opencv.global.opencv_imgproc.rectangle
+import org.bytedeco.opencv.opencv_core.Point
+import org.bytedeco.opencv.opencv_core.Scalar
 import java.util.stream.Collectors
 
 fun main(args: Array<String>) {
@@ -24,20 +29,47 @@ fun main(args: Array<String>) {
 
 
     //座標検出
-    val pointDetector = PointDetector()
-    val coordinates = pointDetector.detect(binaryImage)
-    println(coordinates.size)
+    val gunMarksDetector = GunMarksDetector()
+    val rectangles = gunMarksDetector.detect(binaryImage, 255)
+    println(rectangles.size)
+    println(rectangles.joinToString())
 
     //y軸でソート
-    val sorted = coordinates.sortedWith(compareByDescending { it.y });
+    val sorted = rectangles.sortedWith(compareByDescending { it.bottomRight.y });
     println(sorted.joinToString())
 
+    sorted.forEach { rect ->
+        rectangle(
+            inputImage,
+            Point(rect.topLeft.x, rect.topLeft.y),
+            Point(rect.bottomRight.x, rect.bottomRight.y),
+            Scalar(255.0, 0.0, 0.0, 0.0),
+            -1,
+            LINE_8,
+            0
+        )
+    }
+    imageReaderWriter.write(base + "result.png", inputImage)
+
     if (sorted.isNotEmpty()) {
-        val referenceCoordinate = sorted[0]
+        val referenceRectangle = sorted[0]
+        val referencePoint = entity.Point(
+            (referenceRectangle.bottomRight.x - referenceRectangle.topLeft.x) / 2 + referenceRectangle.topLeft.x,
+            (referenceRectangle.bottomRight.y - referenceRectangle.topLeft.y) / 2 + referenceRectangle.topLeft.y
+        )
         val diff = sorted
             .stream()
-            .map { coordinate -> Coordinate(coordinate.x - referenceCoordinate.x, referenceCoordinate.y - coordinate.y) }
+            .map { rect -> Rectangle(
+                entity.Point(rect.topLeft.x - referencePoint.x, -(rect.topLeft.y - referencePoint.y)),
+                entity.Point(rect.bottomRight.x - referencePoint.x, -(rect.bottomRight.y - referencePoint.y))
+            ) }
             .collect(Collectors.toList())
-        println(diff.joinToString(separator = ",", prefix = "[", postfix = "]", transform = { it -> "(${it.x}, ${it.y})"}))
+        println(
+            diff.joinToString(
+                separator = ",",
+                prefix = "[",
+                postfix = "]",
+                transform = { it -> "(${it.topLeft.x},${it.topLeft.y},${it.bottomRight.x},${it.bottomRight.y})" })
+        )
     }
 }
